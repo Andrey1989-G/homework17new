@@ -1,3 +1,4 @@
+# This Python file uses the following encoding: utf-8
 # create_data.py
 
 # чтобы создать БД с данными 

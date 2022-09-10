@@ -24,6 +24,7 @@ class Movie(db.Model):
     director_id = db.Column(db.Integer, db.ForeignKey("director.id"))
     director = db.relationship("Director")
 
+
 class Director(db.Model):
     __tablename__ = 'director'
     id = db.Column(db.Integer, primary_key=True)
@@ -36,6 +37,93 @@ class Genre(db.Model):
     name = db.Column(db.String(255))
 
 
+class MovieSchema(Schema):
+    id = fields.Int()
+    title = fields.Str()
+    description = fields.Str()
+    trailer = fields.Str()
+    year = fields.Int()
+    rating = fields.Float()
+    genre = fields.Str()
+    director = fields.Str()
+
+
+class DirectorSchema(Schema):
+    id = fields.Int()
+    name = fields.Str()
+
+
+class GenreSchema(Schema):
+    id = fields.Int()
+    name = fields.Str()
+
+
+# Единичная сереализация
+movie_schema = MovieSchema()
+director_schema = DirectorSchema()
+genre_schema = GenreSchema()
+# Множественная сереализация
+movies_schema = MovieSchema(many=True)
+directors_schema = DirectorSchema(many=True)
+genres_schema = GenreSchema(many=True)
+
+# делаем эндпойнт 'movies'
+api = Api(app)
+movies_ns = api.namespace('movies')
+
+
+# во имя пеп8 делаем функцию сериализатор и десериализатор(в задании вроде нет, чисто для себя)
+# отдельный файл делать поленился. Каюсь
+def serializ(model, object):
+    dct = model.dump(object)
+    return dct
+
+
+def deserializ(model, object):
+    dct = model.load(object)
+    return dct
+
+
+# делаем вьюшкu
+@movies_ns.route('/')
+class MoviesPage(Resource):
+    def get(self):
+        res = serializ(movies_schema, Movie.query.all())
+
+        # делаем запрос по режиссеру
+        # получаем значение director_id из запроса
+        # поищу позже почему запрос передает результат строковый.
+        # пока такую латку поставлю
+        director_id = int(request.args.get('director_id'))
+        if director_id != None:
+            director = serializ(director_schema, Director.query.get(director_id))
+            movie = serializ(movies_schema, Movie.query.all())
+            res = []
+            for i in movie:
+                if i['id'] == director['id']:
+                    res.append(i)
+
+        # делаем запрос по жанру
+        # получаем данные genre_id из запроса
+        # см строки кода 95 и 96
+        genre_id = int(request.args.get('genre_id'))
+        if genre_id != None:
+            genre = serializ(genres_schema, Genre.query.get(genre_id))
+            movie = serializ(movies_schema, Movie.query.all())
+            res = []
+            for i in movie:
+                if i['id'] == genre('id')
+                    res.append(i)
+        return res, 200
+
+
+# не забыть вставить единичную сериализацию
+@movies_ns.route('/<int:mid>')
+class MoviePage(Resource):
+    def get(self, mid):
+        res = serializ(movie_schema, Movie.query.get(mid))
+        return res, 200
+
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(port=5001, debug=True)
