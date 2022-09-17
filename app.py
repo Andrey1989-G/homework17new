@@ -95,9 +95,11 @@ class MoviesPage(Resource):
         # поищу позже почему запрос передает результат строковый.
         # пока такую латку поставлю
         director_id = int(request.args.get('director_id'))
+
         if director_id != None:
             director = serializ(director_schema, Director.query.get(director_id))
             movie = serializ(movies_schema, Movie.query.all())
+
             res = []
             for i in movie:
                 if i['id'] == director['id']:
@@ -112,7 +114,7 @@ class MoviesPage(Resource):
             movie = serializ(movies_schema, Movie.query.all())
             res = []
             for i in movie:
-                if i['id'] == genre('id')
+                if i['id'] == genre['id']:
                     res.append(i)
         return res, 200
 
